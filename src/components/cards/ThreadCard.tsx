@@ -1,3 +1,4 @@
+import { toggleLike } from "@/lib/actions/user.action";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -23,6 +24,7 @@ interface Params {
     };
   }[];
   isComment?: boolean;
+  likedThreads: string[];
 }
 
 const ThreadCard = ({
@@ -35,8 +37,19 @@ const ThreadCard = ({
   createdAt,
   comments,
   isComment,
+  likedThreads,
 }: Params) => {
   console.log(author);
+
+  // const [isLiked, setIsLiked] = useState<boolean>(false);
+  let isLiked = false;
+
+  const handleLike = async () => {
+    likedThreads = await toggleLike({ userId: currentUserId, threadId: id });
+    isLiked = isLiked ? false : true;
+  };
+
+  console.log(likedThreads);
 
   return (
     <article
@@ -70,13 +83,16 @@ const ThreadCard = ({
 
             <div className={`${isComment && "mb-10"} mt-5 flex flex-col gap-3`}>
               <div className="flex gap-3.5">
-                <Image
-                  src="/assets/heart-gray.svg"
-                  alt="heart"
-                  width={24}
-                  height={24}
-                  className="cursor-pointer object-contain"
-                />
+                <div>
+                  <Image
+                    src="/assets/heart-gray.svg"
+                    alt="heart"
+                    width={24}
+                    height={24}
+                    className="cursor-pointer object-contain"
+                  />
+                </div>
+
                 <Link href={`/thread/${id}`}>
                   <Image
                     src="/assets/reply.svg"

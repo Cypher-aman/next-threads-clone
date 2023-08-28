@@ -132,3 +132,66 @@ export const fetchUsers = async ({
     throw error;
   }
 };
+
+export const toggleLike = async ({
+  userId,
+  threadId,
+}: {
+  userId: string;
+  threadId: string;
+}) => {
+  try {
+    connectToDB();
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const postIndex = user.likedThreads.indexOf(threadId);
+
+    if (postIndex === -1) {
+      // Post is not liked, so add it to the likedPosts array
+      user.likedThreads.unshift(threadId);
+    } else {
+      // Post is already liked, so remove it from the likedThreads array
+      user.likedThreads.splice(postIndex, 1);
+    }
+
+    const updateUser = await user.save();
+
+    return updateUser.likedThreads;
+  } catch (error: any) {
+    throw new Error(error.message);
+  }
+};
+
+export async function getActivity(userId: string) {
+  try {
+    connectToDB();
+
+    // Find all threads created by the user
+    const userThreads = await Thread.find({ author: userId });
+
+    // Collect all the child thread ids (replies) from the 'children' field of each user thread
+    const childThreadIds = userThreads.reduce((acc, userThread) => {
+      return acc.concat(userThread.children);
+    }, []);
+
+    // Find and return the child threads (replies) excluding the ones created by the same user
+    const replies = await Thread.find({
+      _id: { $in: childThreadIds },
+      author: { $ne: userId }, // Exclude threads authored by the same user
+    }).populate({
+      path: "author",
+      model: User,
+      select: "name image _id",
+    });
+
+    return replies;
+  } catch (error) {
+    console.error("Error fetching replies: ", error);
+    throw error;
+  }
+}

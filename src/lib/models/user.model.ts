@@ -20,6 +20,10 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  likedThreads: {
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: "Thread",
+  },
   threads: {
     type: [mongoose.Schema.Types.ObjectId],
     ref: "Thread",
